@@ -78,6 +78,7 @@ func Response(statusCode int, body interface{}) (events.APIGatewayProxyResponse,
 	if body != nil {
 		b, err = json.Marshal(body)
 		if err != nil {
+			statusCode = http.StatusInternalServerError
 			b, _ = json.Marshal(ErrInternalServer)
 		}
 	}

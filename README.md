@@ -1,6 +1,7 @@
 # lamb
 
 [![Build Status](https://travis-ci.org/musitude/lamb.svg?branch=master)](https://travis-ci.org/musitude/lamb)
+[![Coverage Status](https://coveralls.io/repos/github/musitude/lamb/badge.svg?branch=master)](https://coveralls.io/github/musitude/lamb?branch=master)
 
 Provides the following utilities to simplify working with AWS lambda and Api Gateway.
 

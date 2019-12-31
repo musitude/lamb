@@ -135,7 +135,7 @@ func TestCreated(t *testing.T) {
 
 func TestErrorResponse_InternalServer(t *testing.T) {
 	h := func(r events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-		return lamb.ErrorResponse(errors.New("error"))
+		return lamb.Error(errors.New("error"))
 	}
 
 	apitest.New().
@@ -149,7 +149,7 @@ func TestErrorResponse_InternalServer(t *testing.T) {
 
 func TestErrorResponse_CustomError(t *testing.T) {
 	h := func(r events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-		return lamb.ErrorResponse(&lamb.Error{
+		return lamb.Error(&lamb.Err{
 			Status: http.StatusBadRequest,
 			Code:   "INVALID_QUERY_PARAM",
 			Detail: "Invalid query param",
@@ -167,7 +167,7 @@ func TestErrorResponse_CustomError(t *testing.T) {
 
 func TestErrorResponse_SupportsParams(t *testing.T) {
 	h := func(r events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-		return lamb.ErrorResponse(&lamb.Error{
+		return lamb.Error(&lamb.Err{
 			Status: http.StatusBadRequest,
 			Code:   "INVALID_QUERY_PARAM",
 			Detail: "Invalid query param",
@@ -187,7 +187,7 @@ func TestErrorResponse_SupportsParams(t *testing.T) {
 }
 
 func TestError_Error(t *testing.T) {
-	err := lamb.Error{
+	err := lamb.Err{
 		Status: http.StatusBadRequest,
 		Code:   "INVALID_QUERY_PARAM",
 		Detail: "Invalid query param",

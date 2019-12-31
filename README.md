@@ -1,5 +1,7 @@
 # lamb
 
+[![Build Status](https://travis-ci.org/musitude/lamb.svg?branch=master)](https://travis-ci.org/musitude/lamb)
+
 Provides the following utilities to simplify working with AWS lambda and Api Gateway.
 
 * HTTP request parsing with JSON support and request body validation

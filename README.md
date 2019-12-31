@@ -41,9 +41,11 @@ handler := func(r events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse
 
 Passing Go errors to the error response writer will log the error and response with an unhandled internal server error
 
+```go
 handler := func(r events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	return lamb.ErrorResponse(errors.New("something went wrong"))
 }
+```
 
 ### Custom Errors
 

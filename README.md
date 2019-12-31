@@ -39,7 +39,7 @@ handler := func(r events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse
 
 ### Go Errors
 
-Passing Go errors to the error response writer will log the error and response with an unhandled internal server error
+Passing Go errors to the error response writer will log the error and respond with an internal server error
 
 ```go
 handler := func(r events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {

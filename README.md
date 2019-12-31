@@ -24,11 +24,40 @@ func (b body) Validate() error {
 }
 
 handler := func(r events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-		var b requestBody
-		err := lamb.Bind(r.Body, &b)
-		
-        ...
-
-		return lamb.OK(nil)
-	}
+	var b requestBody
+	err := lamb.Bind(r.Body, &b)
+	
+	// work with requestBody.Name or err == "status empty"
+	
+	return lamb.OK(responseBody) // writes responseBody to response as JSON with 200 status code 
+}
 ```
+
+## Custom errors
+
+```go
+handler := func(r events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	return lamb.ErrorResponse(&lamb.Error{
+		Status: http.StatusBadRequest,
+		Code:   "INVALID_QUERY_PARAM",
+		Detail: "Invalid query param",
+		Params: map[string]string{
+			"custom": "content",
+		},
+	})
+}
+```
+
+Writes the the following response
+
+```json
+{
+  "code": "INVALID_QUERY_PARAM",
+  "detail": "Invalid query param",
+  "params": {
+    "custom": "content"
+  }
+}
+```
+
+where params is type `interface{}` to support arbitrary data in responses.

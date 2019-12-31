@@ -2,9 +2,9 @@ package lamb
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strings"
-	"fmt"
 
 	"github.com/aws/aws-lambda-go/events"
 )
@@ -40,7 +40,7 @@ func (err *Error) Error() string {
 	return strings.Join(errorParts, "; ")
 }
 
-func bind(data string, v interface{}) error {
+func Bind(data string, v interface{}) error {
 	if err := json.Unmarshal([]byte(data), v); err != nil {
 		return ErrInvalidBody
 	}
@@ -55,7 +55,7 @@ func bind(data string, v interface{}) error {
 	return nil
 }
 
-func errorResponse(err error) (events.APIGatewayProxyResponse, error) {
+func ErrorResponse(err error) (events.APIGatewayProxyResponse, error) {
 	var newErr *Error
 	switch err := err.(type) {
 	case *Error:
@@ -69,10 +69,10 @@ func errorResponse(err error) (events.APIGatewayProxyResponse, error) {
 		fmt.Printf("Unhandled error: %s", err.Error())
 	}
 
-	return response(newErr.Status, newErr)
+	return Response(newErr.Status, newErr)
 }
 
-func response(statusCode int, body interface{}) (events.APIGatewayProxyResponse, error) {
+func Response(statusCode int, body interface{}) (events.APIGatewayProxyResponse, error) {
 	var b []byte
 	var err error
 	if body != nil {
@@ -88,8 +88,12 @@ func response(statusCode int, body interface{}) (events.APIGatewayProxyResponse,
 	}, nil
 }
 
-func created(location string) (events.APIGatewayProxyResponse, error) {
-	proxyResponse, err := response(http.StatusCreated, nil)
+func Created(location string) (events.APIGatewayProxyResponse, error) {
+	proxyResponse, err := Response(http.StatusCreated, nil)
 	proxyResponse.Headers = map[string]string{"Location": location}
 	return proxyResponse, err
+}
+
+func OK(body interface{}) (events.APIGatewayProxyResponse, error) {
+	return Response(http.StatusOK, body)
 }

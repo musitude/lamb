@@ -166,6 +166,27 @@ func TestErrorResponse_CustomError(t *testing.T) {
 		End()
 }
 
+func TestErrorResponse_SupportsParams(t *testing.T) {
+	h := func(r events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+		return lamb.ErrorResponse(&lamb.Error{
+			Status: http.StatusBadRequest,
+			Code:   "INVALID_QUERY_PARAM",
+			Detail: "Invalid query param",
+			Params: map[string]string{
+				"custom": "content",
+			},
+		})
+	}
+
+	apitest.New().
+		Handler(adapter.GetHttpHandler(h, "/", nil)).
+		Get("/").
+		Expect(t).
+		Status(http.StatusBadRequest).
+		Body(`{"code":"INVALID_QUERY_PARAM", "detail":"Invalid query param", "params": {"custom": "content"}}`).
+		End()
+}
+
 func TestError_Error(t *testing.T) {
 	err := lamb.Error{
 		Status: http.StatusBadRequest,

@@ -28,9 +28,10 @@ var ErrInvalidBody = &Error{
 }
 
 type Error struct {
-	Status int    `json:"-"`
-	Code   string `json:"code"`
-	Detail string `json:"detail"`
+	Status int         `json:"-"`
+	Code   string      `json:"code"`
+	Detail string      `json:"detail"`
+	Params interface{} `json:"params,omitempty"`
 }
 
 func (err *Error) Error() string {

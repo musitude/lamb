@@ -12,7 +12,6 @@ import (
 	"github.com/musitude/lamb"
 )
 
-
 type body struct {
 	Name   string `json:"name"`
 	Status string `json:"status"`

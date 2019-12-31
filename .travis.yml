@@ -1,0 +1,12 @@
+language: go
+
+go:
+  - "1.13"
+
+script:
+  - diff -u <(echo -n) <(gofmt -s -d ./)
+  - diff -u <(echo -n) <(go vet ./...)
+  - make test
+
+env:
+  - GO111MODULE=on

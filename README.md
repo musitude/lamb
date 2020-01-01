@@ -32,7 +32,7 @@ handler := func(r events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse
 	
 	// work with requestBody.Name or err == "status empty"
 	
-	return lamb.OK(responseBody) // writes responseBody to response as JSON with 200 status code 
+	return lamb.JSON(http.StatusOK, responseBody)
 }
 ```
 

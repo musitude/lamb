@@ -70,10 +70,10 @@ func Error(err error) (events.APIGatewayProxyResponse, error) {
 		fmt.Printf("Unhandled error: %s", err.Error())
 	}
 
-	return Response(newErr.Status, newErr)
+	return JSON(newErr.Status, newErr)
 }
 
-func Response(statusCode int, body interface{}) (events.APIGatewayProxyResponse, error) {
+func JSON(statusCode int, body interface{}) (events.APIGatewayProxyResponse, error) {
 	var b []byte
 	var err error
 	if body != nil {
@@ -91,11 +91,11 @@ func Response(statusCode int, body interface{}) (events.APIGatewayProxyResponse,
 }
 
 func Created(location string) (events.APIGatewayProxyResponse, error) {
-	proxyResponse, err := Response(http.StatusCreated, nil)
+	proxyResponse, err := JSON(http.StatusCreated, nil)
 	proxyResponse.Headers = map[string]string{"Location": location}
 	return proxyResponse, err
 }
 
 func OK(body interface{}) (events.APIGatewayProxyResponse, error) {
-	return Response(http.StatusOK, body)
+	return JSON(http.StatusOK, body)
 }

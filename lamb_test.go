@@ -93,7 +93,7 @@ func TestBind_HandlesInvalidRequestJSON(t *testing.T) {
 			t.Fatal("expected ErrInvalidBody from validation")
 		}
 
-		return lamb.Response(http.StatusBadRequest, nil)
+		return lamb.JSON(http.StatusBadRequest, nil)
 	}
 
 	apitest.New().

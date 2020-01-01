@@ -9,6 +9,23 @@ Provides the following utilities to simplify working with AWS lambda and Api Gat
 * HTTP response writer with JSON support
 * Custom error type with JSON support
 
+## Request body parsing
+
+Use the bind method to unmarshal the response body to a struct
+
+```go
+type requestBody struct {
+	Name   string `json:"name"`
+}
+
+handler := func(r events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	var b requestBody
+	err := lamb.Bind(r.Body, &b)
+
+	...
+}
+```
+
 ## Request body validation
 
 Implement the `Validate` method on the struct
@@ -36,6 +53,19 @@ handler := func(r events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse
 }
 ```
 
+## Response writer
+
+There are several methods provided to simplify writing HTTP responses. 
+
+```go
+handler := func(r events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	...
+	lamb.JSON(http.StatusOK, responseBody)
+}
+```
+
+`lamb.OK(responseBody)` sets the HTTP status code to `http.StatusOK` and marshals `responseBody` as JSON.
+
 ## Errors
 
 ### Go Errors
@@ -44,7 +74,7 @@ Passing Go errors to the error response writer will log the error and respond wi
 
 ```go
 handler := func(r events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	return lamb.ErrorResponse(errors.New("something went wrong"))
+	return lamb.JSON(http.StatusOK, myStruct))
 }
 ```
 

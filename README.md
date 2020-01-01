@@ -74,7 +74,7 @@ Passing Go errors to the error response writer will log the error and respond wi
 
 ```go
 handler := func(r events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	return lamb.JSON(http.StatusOK, myStruct))
+	return lamb.Error(errors.New("something went wrong"))
 }
 ```
 

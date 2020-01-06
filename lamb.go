@@ -15,13 +15,13 @@ type Validatable interface {
 	Validate() error
 }
 
-var ErrInternalServer = &Err{
+var ErrInternalServer = Err{
 	Status: http.StatusInternalServerError,
 	Code:   "INTERNAL_SERVER_ERROR",
 	Detail: "Internal server error",
 }
 
-var ErrInvalidBody = &Err{
+var ErrInvalidBody = Err{
 	Status: http.StatusBadRequest,
 	Code:   "INVALID_REQUEST_BODY",
 	Detail: "Invalid request body",
@@ -34,7 +34,7 @@ type Err struct {
 	Params interface{} `json:"params,omitempty"`
 }
 
-func (err *Err) Error() string {
+func (err Err) Error() string {
 	errorParts := []string{
 		fmt.Sprintf("Code: %s; Status: %d; Detail: %s", err.Code, err.Status, err.Detail),
 	}
@@ -57,12 +57,12 @@ func Bind(data string, v interface{}) error {
 }
 
 func Error(err error) (events.APIGatewayProxyResponse, error) {
-	var newErr *Err
+	var newErr Err
 	switch err := err.(type) {
-	case *Err:
+	case Err:
 		newErr = err
 	default:
-		newErr = &Err{
+		newErr = Err{
 			Status: ErrInternalServer.Status,
 			Code:   ErrInternalServer.Code,
 			Detail: ErrInternalServer.Detail,

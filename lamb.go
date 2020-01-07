@@ -4,12 +4,38 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 	"strings"
 
 	"github.com/aws/aws-lambda-go/events"
+	"github.com/rs/zerolog"
 )
 
-type Handler = func(r events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error)
+type APIGatewayProxyHandler = func(r events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error)
+
+type Context struct {
+	Logger   zerolog.Logger
+	Request  events.APIGatewayProxyRequest
+	Response events.APIGatewayProxyResponse
+}
+
+func Handle(handlerFunc func(ctx *Context) error) APIGatewayProxyHandler {
+	return func(r events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+		log := zerolog.New(os.Stdout).With().
+			Timestamp().
+			Caller().
+			Logger()
+
+		c := &Context{
+			Logger:   log,
+			Request:  r,
+			Response: events.APIGatewayProxyResponse{},
+		}
+
+		err := handlerFunc(c)
+		return c.Response, err
+	}
+}
 
 type Validatable interface {
 	Validate() error
@@ -41,13 +67,13 @@ func (err Err) Error() string {
 	return strings.Join(errorParts, "; ")
 }
 
-func Bind(data string, v interface{}) error {
-	if err := json.Unmarshal([]byte(data), v); err != nil {
+func (c *Context) Bind(v interface{}) error {
+	if err := json.Unmarshal([]byte(c.Request.Body), v); err != nil {
 		return ErrInvalidBody
 	}
 
-	if validateable, ok := v.(Validatable); ok {
-		err := validateable.Validate()
+	if validatable, ok := v.(Validatable); ok {
+		err := validatable.Validate()
 		if err != nil {
 			return err
 		}
@@ -56,7 +82,7 @@ func Bind(data string, v interface{}) error {
 	return nil
 }
 
-func Error(err error) (events.APIGatewayProxyResponse, error) {
+func (c *Context) Error(err error) error {
 	var newErr Err
 	switch err := err.(type) {
 	case Err:
@@ -70,10 +96,10 @@ func Error(err error) (events.APIGatewayProxyResponse, error) {
 		fmt.Printf("Unhandled error: %s", err.Error())
 	}
 
-	return JSON(newErr.Status, newErr)
+	return c.JSON(newErr.Status, newErr)
 }
 
-func JSON(statusCode int, body interface{}) (events.APIGatewayProxyResponse, error) {
+func (c *Context) JSON(statusCode int, body interface{}) error {
 	var b []byte
 	var err error
 	if body != nil {
@@ -84,18 +110,24 @@ func JSON(statusCode int, body interface{}) (events.APIGatewayProxyResponse, err
 		}
 	}
 
-	return events.APIGatewayProxyResponse{
-		StatusCode: statusCode,
-		Body:       string(b),
-	}, nil
+	c.Response.StatusCode = statusCode
+	c.Response.Body = string(b)
+	return nil
 }
 
-func Created(location string) (events.APIGatewayProxyResponse, error) {
-	proxyResponse, err := JSON(http.StatusCreated, nil)
-	proxyResponse.Headers = map[string]string{"Location": location}
-	return proxyResponse, err
+func (c *Context) Header(k, v string) {
+	if c.Response.Headers == nil {
+		c.Response.Headers = map[string]string{k: v}
+		return
+	}
+	c.Response.Headers[k] = v
 }
 
-func OK(body interface{}) (events.APIGatewayProxyResponse, error) {
-	return JSON(http.StatusOK, body)
+func (c *Context) Created(location string) error {
+	c.Header("Location", location)
+	return c.JSON(http.StatusCreated, nil)
+}
+
+func (c *Context) OK(body interface{}) error {
+	return c.JSON(http.StatusOK, body)
 }

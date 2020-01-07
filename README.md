@@ -8,6 +8,7 @@ Provides the following utilities to simplify working with AWS lambda and Api Gat
 * HTTP request parsing with JSON support and request body validation
 * HTTP response writer with JSON support
 * Custom error type with JSON support
+* Logging using zerolog
 
 ## Request body parsing
 
@@ -18,12 +19,12 @@ type requestBody struct {
 	Name   string `json:"name"`
 }
 
-handler := func(r events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+handler := lamb.Handle(func(c *lamb.Context) error {
 	var b requestBody
-	err := lamb.Bind(r.Body, &b)
+	err := c.Bind(&b)
 
 	...
-}
+})
 ```
 
 ## Request body validation
@@ -43,13 +44,13 @@ func (b body) Validate() error {
 	return nil
 }
 
-handler := func(r events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+handler := lamb.Handle(func(c *lamb.Context) error {
 	var b requestBody
-	err := lamb.Bind(r.Body, &b)
+	err := c.Bind(&b)
 	
 	// work with requestBody.Name or err == "status empty"
 	
-	return lamb.JSON(http.StatusOK, responseBody)
+	return c.JSON(http.StatusOK, responseBody)
 }
 ```
 
@@ -58,10 +59,10 @@ handler := func(r events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse
 There are several methods provided to simplify writing HTTP responses. 
 
 ```go
-handler := func(r events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+handler := lamb.Handle(func(c *lamb.Context) error {
 	...
-	lamb.JSON(http.StatusOK, responseBody)
-}
+	return c.JSON(http.StatusOK, responseBody)
+})
 ```
 
 `lamb.OK(responseBody)` sets the HTTP status code to `http.StatusOK` and marshals `responseBody` as JSON.
@@ -73,9 +74,9 @@ handler := func(r events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse
 Passing Go errors to the error response writer will log the error and respond with an internal server error
 
 ```go
-handler := func(r events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	return lamb.Error(errors.New("something went wrong"))
-}
+handler := lamb.Handle(func(c *lamb.Context) error {
+	return c.Error(errors.New("something went wrong"))
+})
 ```
 
 ### Custom Errors
@@ -83,8 +84,8 @@ handler := func(r events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse
 You can pass custom `lamb` errors and also map then to HTTP status codes
 
 ```go
-handler := func(r events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	return lamb.ErrorResponse(&lamb.Error{
+handler := lamb.Handle(func(c *lamb.Context) error {
+	return c.Error(lamb.Err{
 		Status: http.StatusBadRequest,
 		Code:   "INVALID_QUERY_PARAM",
 		Detail: "Invalid query param",
@@ -92,7 +93,7 @@ handler := func(r events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse
 			"custom": "content",
 		},
 	})
-}
+})
 ```
 
 Writes the the following response

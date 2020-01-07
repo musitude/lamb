@@ -120,6 +120,7 @@ func TestBind_HandlesInvalidResponseJSON(t *testing.T) {
 
 func TestCreated(t *testing.T) {
 	h := lamb.Handle(func(c *lamb.Context) error {
+		c.Header("Custom", "54321")
 		return c.Created("12345")
 	})
 
@@ -129,6 +130,7 @@ func TestCreated(t *testing.T) {
 		Expect(t).
 		Status(http.StatusCreated).
 		Header("Location", "12345").
+		Header("Custom", "54321").
 		End()
 }
 

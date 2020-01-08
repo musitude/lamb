@@ -38,7 +38,7 @@ type requestBody struct {
 	Status string `json:"status"`
 }
 
-func (b body) Validate() error {
+func (b requestBody) Validate() error {
 	if b.Status == "" {
 		return errors.New("status empty")
 	}

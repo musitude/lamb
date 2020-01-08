@@ -168,7 +168,7 @@ func (c *Context) Created(location string) error {
 	return c.JSON(http.StatusCreated, nil)
 }
 
-// Created is a convenient method for writing the provided body and HTTP Status 200 to the API Gateway responses.
+// OK is a convenient method for writing the provided body and HTTP Status 200 to the API Gateway responses.
 func (c *Context) OK(body interface{}) error {
 	return c.JSON(http.StatusOK, body)
 }

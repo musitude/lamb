@@ -1,10 +1,12 @@
 package lamb_test
 
 import (
+	"context"
 	"errors"
 	"net/http"
 	"testing"
 
+	"github.com/aws/aws-lambda-go/events"
 	adapter "github.com/gaw508/lambda-proxy-http-adapter"
 	"github.com/steinfletcher/apitest"
 
@@ -24,7 +26,7 @@ func (b body) Validate() error {
 }
 
 func TestBind(t *testing.T) {
-	h := lamb.Handle(func(c *lamb.Context) error {
+	h := handler(lamb.Handle(func(c *lamb.Context) error {
 		var b body
 		err := c.Bind(&b)
 		if err != nil {
@@ -40,10 +42,10 @@ func TestBind(t *testing.T) {
 		}
 
 		return c.OK(nil)
-	})
+	}))
 
 	apitest.New().
-		Handler(adapter.GetHttpHandler(h, "/", nil)).
+		Handler(h).
 		Get("/").
 		JSON(`{
 			"name": "Mei",
@@ -55,7 +57,7 @@ func TestBind(t *testing.T) {
 }
 
 func TestBind_Validate(t *testing.T) {
-	h := lamb.Handle(func(c *lamb.Context) error {
+	h := handler(lamb.Handle(func(c *lamb.Context) error {
 		var b body
 		err := c.Bind(&b)
 		if err == nil {
@@ -67,10 +69,10 @@ func TestBind_Validate(t *testing.T) {
 		}
 
 		return c.OK(nil)
-	})
+	}))
 
 	apitest.New().
-		Handler(adapter.GetHttpHandler(h, "/", nil)).
+		Handler(h).
 		Get("/").
 		JSON(`{
 			"name": "Mei"
@@ -81,7 +83,7 @@ func TestBind_Validate(t *testing.T) {
 }
 
 func TestBind_HandlesInvalidRequestJSON(t *testing.T) {
-	h := lamb.Handle(func(c *lamb.Context) error {
+	h := handler(lamb.Handle(func(c *lamb.Context) error {
 		var b body
 		err := c.Bind(&b)
 		if err == nil {
@@ -93,10 +95,10 @@ func TestBind_HandlesInvalidRequestJSON(t *testing.T) {
 		}
 
 		return c.JSON(http.StatusBadRequest, nil)
-	})
+	}))
 
 	apitest.New().
-		Handler(adapter.GetHttpHandler(h, "/", nil)).
+		Handler(h).
 		Get("/").
 		JSON(`not json`).
 		Expect(t).
@@ -105,13 +107,13 @@ func TestBind_HandlesInvalidRequestJSON(t *testing.T) {
 }
 
 func TestBind_HandlesInvalidResponseJSON(t *testing.T) {
-	h := lamb.Handle(func(c *lamb.Context) error {
+	h := handler(lamb.Handle(func(c *lamb.Context) error {
 		forceErrorValue := make(chan int)
 		return c.OK(forceErrorValue)
-	})
+	}))
 
 	apitest.New().
-		Handler(adapter.GetHttpHandler(h, "/", nil)).
+		Handler(h).
 		Get("/").
 		Expect(t).
 		Status(http.StatusInternalServerError).
@@ -119,13 +121,13 @@ func TestBind_HandlesInvalidResponseJSON(t *testing.T) {
 }
 
 func TestCreated(t *testing.T) {
-	h := lamb.Handle(func(c *lamb.Context) error {
+	h := handler(lamb.Handle(func(c *lamb.Context) error {
 		c.Header("Custom", "54321")
 		return c.Created("12345")
-	})
+	}))
 
 	apitest.New().
-		Handler(adapter.GetHttpHandler(h, "/", nil)).
+		Handler(h).
 		Get("/").
 		Expect(t).
 		Status(http.StatusCreated).
@@ -135,12 +137,12 @@ func TestCreated(t *testing.T) {
 }
 
 func TestErrorResponse_InternalServer(t *testing.T) {
-	h := lamb.Handle(func(c *lamb.Context) error {
+	h := handler(lamb.Handle(func(c *lamb.Context) error {
 		return c.Error(errors.New("error"))
-	})
+	}))
 
 	apitest.New().
-		Handler(adapter.GetHttpHandler(h, "/", nil)).
+		Handler(h).
 		Get("/").
 		Expect(t).
 		Status(http.StatusInternalServerError).
@@ -149,16 +151,16 @@ func TestErrorResponse_InternalServer(t *testing.T) {
 }
 
 func TestErrorResponse_CustomError(t *testing.T) {
-	h := lamb.Handle(func(c *lamb.Context) error {
+	h := handler(lamb.Handle(func(c *lamb.Context) error {
 		return c.Error(lamb.Err{
 			Status: http.StatusBadRequest,
 			Code:   "INVALID_QUERY_PARAM",
 			Detail: "Invalid query param",
 		})
-	})
+	}))
 
 	apitest.New().
-		Handler(adapter.GetHttpHandler(h, "/", nil)).
+		Handler(h).
 		Get("/").
 		Expect(t).
 		Status(http.StatusBadRequest).
@@ -167,7 +169,7 @@ func TestErrorResponse_CustomError(t *testing.T) {
 }
 
 func TestErrorResponse_SupportsParams(t *testing.T) {
-	h := lamb.Handle(func(c *lamb.Context) error {
+	h := handler(lamb.Handle(func(c *lamb.Context) error {
 		return c.Error(lamb.Err{
 			Status: http.StatusBadRequest,
 			Code:   "INVALID_QUERY_PARAM",
@@ -176,10 +178,10 @@ func TestErrorResponse_SupportsParams(t *testing.T) {
 				"custom": "content",
 			},
 		})
-	})
+	}))
 
 	apitest.New().
-		Handler(adapter.GetHttpHandler(h, "/", nil)).
+		Handler(h).
 		Get("/").
 		Expect(t).
 		Status(http.StatusBadRequest).
@@ -197,4 +199,11 @@ func TestError_Error(t *testing.T) {
 	if err.Error() != "Code: INVALID_QUERY_PARAM; Status: 400; Detail: Invalid query param" {
 		t.Fatalf("unexpected error: '%s'", err.Error())
 	}
+}
+
+func handler(handler lamb.APIGatewayProxyHandler) http.Handler {
+	h := func(r events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+		return handler(context.Background(), r)
+	}
+	return adapter.GetHttpHandler(h, "/", nil)
 }

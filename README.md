@@ -2,6 +2,7 @@
 
 [![Build Status](https://travis-ci.org/musitude/lamb.svg?branch=master)](https://travis-ci.org/musitude/lamb)
 [![Coverage Status](https://coveralls.io/repos/github/musitude/lamb/badge.svg?branch=master)](https://coveralls.io/github/musitude/lamb?branch=master)
+[![Go Report Card](https://goreportcard.com/badge/github.com/musitude/lamb)](https://goreportcard.com/report/github.com/musitude/lamb)
 
 Provides the following utilities to simplify working with AWS lambda and Api Gateway.
 

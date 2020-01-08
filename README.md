@@ -110,3 +110,11 @@ Writes the the following response
 ```
 
 where params is type `interface{}` to support arbitrary data in responses.
+
+### Access the logger
+
+```go
+func(c *lamb.Context) error {
+    c.Logger.Log().Str("my_custom_field", "33").Msg("It worked!") // {"my_custom_field":"33","time":"2020-01-08T09:27:07Z","caller":"/path/to/file.go:125","message":"It worked!"}
+}
+```

@@ -122,6 +122,8 @@ func TestBind_HandlesInvalidResponseJSON(t *testing.T) {
 
 func TestCreated(t *testing.T) {
 	h := handler(lamb.Handle(func(c *lamb.Context) error {
+		c.Logger.Log().Str("my_custom_field", "33").Msg("It worked!")
+
 		c.Header("Custom", "54321")
 		return c.Created("12345")
 	}))

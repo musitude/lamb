@@ -43,7 +43,7 @@ func Handle(handlerFunc Handler) APIGatewayProxyHandler {
 
 		err := handlerFunc(c)
 		if err != nil {
-			c.Error(err)
+			c.handleError(err)
 		}
 
 		return c.Response, nil
@@ -117,8 +117,7 @@ func (c *Context) Bind(v interface{}) error {
 	return nil
 }
 
-// Error is a convenient method for converting errors into API Gateway responses
-func (c *Context) Error(err error) {
+func (c *Context) handleError(err error) {
 	var newErr Err
 	switch err := err.(type) {
 	case Err:

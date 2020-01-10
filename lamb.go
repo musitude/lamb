@@ -42,7 +42,11 @@ func Handle(handlerFunc Handler) APIGatewayProxyHandler {
 		}
 
 		err := handlerFunc(c)
-		return c.Response, err
+		if err != nil {
+			c.Error(err)
+		}
+
+		return c.Response, nil
 	}
 }
 
@@ -114,7 +118,7 @@ func (c *Context) Bind(v interface{}) error {
 }
 
 // Error is a convenient method for converting errors into API Gateway responses
-func (c *Context) Error(err error) error {
+func (c *Context) Error(err error) {
 	var newErr Err
 	switch err := err.(type) {
 	case Err:
@@ -125,10 +129,10 @@ func (c *Context) Error(err error) error {
 			Code:   ErrInternalServer.Code,
 			Detail: ErrInternalServer.Detail,
 		}
-		fmt.Printf("Unhandled error: %s", err.Error())
+		c.Logger.Err(err).Msg("Unhandled error")
 	}
 
-	return c.JSON(newErr.Status, newErr)
+	_ = c.JSON(newErr.Status, newErr)
 }
 
 // JSON writes the provided body and status code to the API Gateway response

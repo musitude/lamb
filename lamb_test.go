@@ -140,7 +140,7 @@ func TestCreated(t *testing.T) {
 
 func TestErrorResponse_InternalServer(t *testing.T) {
 	h := handler(lamb.Handle(func(c *lamb.Context) error {
-		return c.Error(errors.New("error"))
+		return errors.New("error")
 	}))
 
 	apitest.New().
@@ -154,11 +154,11 @@ func TestErrorResponse_InternalServer(t *testing.T) {
 
 func TestErrorResponse_CustomError(t *testing.T) {
 	h := handler(lamb.Handle(func(c *lamb.Context) error {
-		return c.Error(lamb.Err{
+		return lamb.Err{
 			Status: http.StatusBadRequest,
 			Code:   "INVALID_QUERY_PARAM",
 			Detail: "Invalid query param",
-		})
+		}
 	}))
 
 	apitest.New().
@@ -172,14 +172,14 @@ func TestErrorResponse_CustomError(t *testing.T) {
 
 func TestErrorResponse_SupportsParams(t *testing.T) {
 	h := handler(lamb.Handle(func(c *lamb.Context) error {
-		return c.Error(lamb.Err{
+		return lamb.Err{
 			Status: http.StatusBadRequest,
 			Code:   "INVALID_QUERY_PARAM",
 			Detail: "Invalid query param",
 			Params: map[string]string{
 				"custom": "content",
 			},
-		})
+		}
 	}))
 
 	apitest.New().

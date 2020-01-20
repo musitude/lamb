@@ -124,13 +124,16 @@ func (c *Context) handleError(err error) {
 	case Err:
 		newErr = err
 	default:
-		newErr = Err{
-			Status: ErrInternalServer.Status,
-			Code:   ErrInternalServer.Code,
-			Detail: ErrInternalServer.Detail,
+		newErr = ErrInternalServer
+		if isErisErr := eris.Unpack(err).ExternalErr == ""; isErisErr {
+			c.Logger.Error().
+				Fields(map[string]interface{}{
+					"error": eris.ToJSON(err, true),
+				}).
+				Msg("Unhandled error")
+		} else {
+			c.Logger.Error().Msgf("Unhandled error: %+v", err)
 		}
-		errorBody, _ := json.Marshal(eris.ToJSON(err, true))
-		c.Logger.Error().RawJSON("error", errorBody).Msg("Unhandled error")
 	}
 
 	_ = c.JSON(newErr.Status, newErr)

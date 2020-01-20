@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/aws/aws-lambda-go/events"
+	"github.com/rotisserie/eris"
 	"github.com/rs/zerolog"
 )
 
@@ -128,7 +129,8 @@ func (c *Context) handleError(err error) {
 			Code:   ErrInternalServer.Code,
 			Detail: ErrInternalServer.Detail,
 		}
-		c.Logger.Err(err).Msg("Unhandled error")
+		errorBody, _ := json.Marshal(eris.ToJSON(err, true))
+		c.Logger.Error().RawJSON("error", errorBody).Msg("Unhandled error")
 	}
 
 	_ = c.JSON(newErr.Status, newErr)

@@ -10,6 +10,7 @@ Provides the following utilities to simplify working with AWS lambda and Api Gat
 * HTTP response writer with JSON support
 * Custom error type with JSON support
 * Logging using zerolog
+* Logs with stacktrace
 
 ## Request body parsing
 

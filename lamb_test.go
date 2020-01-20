@@ -1,14 +1,20 @@
 package lamb_test
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"net/http"
 	"testing"
 
+	"github.com/PaesslerAG/jsonpath"
 	"github.com/aws/aws-lambda-go/events"
 	adapter "github.com/gaw508/lambda-proxy-http-adapter"
+	"github.com/rotisserie/eris"
+	"github.com/rs/zerolog"
 	"github.com/steinfletcher/apitest"
+	"github.com/stretchr/testify/assert"
 
 	"github.com/musitude/lamb"
 )
@@ -203,9 +209,49 @@ func TestError_Error(t *testing.T) {
 	}
 }
 
+func TestAPIGatewayProxyHandler_UnhandledErrorWithStackTrace(t *testing.T) {
+	logCaptor := &bytes.Buffer{}
+	h := handler(lamb.Handle(func(c *lamb.Context) error {
+		c.Logger = zerolog.New(logCaptor)
+		return eris.Wrap(errors.New("source err"), "add context")
+	}))
+
+	apitest.New().
+		Handler(h).
+		Get("/").
+		Expect(t).
+		Status(http.StatusInternalServerError).
+		Body(`{
+			"code": "INTERNAL_SERVER_ERROR",
+			"detail": "Internal server error"
+		}`).
+		End()
+
+	logMessage := logCaptor.Bytes()
+	assert.Equal(t, "Unhandled error", jsonPath("$.message", logMessage))
+	assert.Equal(t, "source err", jsonPath("$.error.root.message", logMessage))
+	assert.NotEmpty(t, jsonPath("$.error.root.stack", logMessage))
+	assert.Equal(t, "add context", jsonPath("$.error.wrap[0].message", logMessage))
+	assert.NotEmpty(t, jsonPath("$.error.wrap[0].stack", logMessage))
+}
+
 func handler(handler lamb.APIGatewayProxyHandler) http.Handler {
 	h := func(r events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 		return handler(context.Background(), r)
 	}
 	return adapter.GetHttpHandler(h, "/", nil)
+}
+
+func jsonPath(path string, jsonData []byte) interface{} {
+	v := interface{}(nil)
+	err := json.Unmarshal(jsonData, &v)
+	if err != nil {
+		panic(err)
+	}
+
+	value, err := jsonpath.Get(path, v)
+	if err != nil {
+		panic(err)
+	}
+	return value
 }

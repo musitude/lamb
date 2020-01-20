@@ -70,16 +70,6 @@ handler := lamb.Handle(func(c *lamb.Context) error {
 
 ## Errors
 
-### Go Errors
-
-Passing Go errors to the error response writer will log the error and respond with an internal server error
-
-```go
-handler := lamb.Handle(func(c *lamb.Context) error {
-	return c.Error(errors.New("something went wrong"))
-})
-```
-
 ### Custom Errors
 
 You can pass custom `lamb` errors and also map then to HTTP status codes
@@ -110,6 +100,10 @@ Writes the the following response
 ```
 
 where params is type `interface{}` to support arbitrary data in responses.
+
+### Bubbling errors up
+
+Go errors returned in the handler are automatically marshalled to a generic json HTTP response and the status code is set to 500. These errors are also logged. If you wrap the source error with [eris](https://github.com/rotisserie/eris) a stack trace is included in the log.
 
 ### Access the logger
 

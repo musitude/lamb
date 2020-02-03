@@ -32,7 +32,7 @@ func (b body) Validate() error {
 }
 
 func TestBind(t *testing.T) {
-	h := handler(lamb.Handle(func(c *lamb.Context) error {
+	h := handler(lamb.NewAPIGatewayProxyHandler(func(c *lamb.APIGatewayProxyContext) error {
 		var b body
 		err := c.Bind(&b)
 		if err != nil {
@@ -63,7 +63,7 @@ func TestBind(t *testing.T) {
 }
 
 func TestBind_Validate(t *testing.T) {
-	h := handler(lamb.Handle(func(c *lamb.Context) error {
+	h := handler(lamb.NewAPIGatewayProxyHandler(func(c *lamb.APIGatewayProxyContext) error {
 		var b body
 		err := c.Bind(&b)
 		if err == nil {
@@ -89,7 +89,7 @@ func TestBind_Validate(t *testing.T) {
 }
 
 func TestBind_HandlesInvalidRequestJSON(t *testing.T) {
-	h := handler(lamb.Handle(func(c *lamb.Context) error {
+	h := handler(lamb.NewAPIGatewayProxyHandler(func(c *lamb.APIGatewayProxyContext) error {
 		var b body
 		err := c.Bind(&b)
 		if err == nil {
@@ -113,7 +113,7 @@ func TestBind_HandlesInvalidRequestJSON(t *testing.T) {
 }
 
 func TestBind_HandlesInvalidResponseJSON(t *testing.T) {
-	h := handler(lamb.Handle(func(c *lamb.Context) error {
+	h := handler(lamb.NewAPIGatewayProxyHandler(func(c *lamb.APIGatewayProxyContext) error {
 		forceErrorValue := make(chan int)
 		return c.OK(forceErrorValue)
 	}))
@@ -127,7 +127,7 @@ func TestBind_HandlesInvalidResponseJSON(t *testing.T) {
 }
 
 func TestCreated(t *testing.T) {
-	h := handler(lamb.Handle(func(c *lamb.Context) error {
+	h := handler(lamb.NewAPIGatewayProxyHandler(func(c *lamb.APIGatewayProxyContext) error {
 		c.Logger.Log().Str("my_custom_field", "33").Msg("It worked!")
 
 		c.Header("Custom", "54321")
@@ -145,7 +145,7 @@ func TestCreated(t *testing.T) {
 }
 
 func TestErrorResponse_InternalServer(t *testing.T) {
-	h := handler(lamb.Handle(func(c *lamb.Context) error {
+	h := handler(lamb.NewAPIGatewayProxyHandler(func(c *lamb.APIGatewayProxyContext) error {
 		return errors.New("error")
 	}))
 
@@ -159,7 +159,7 @@ func TestErrorResponse_InternalServer(t *testing.T) {
 }
 
 func TestErrorResponse_CustomError(t *testing.T) {
-	h := handler(lamb.Handle(func(c *lamb.Context) error {
+	h := handler(lamb.NewAPIGatewayProxyHandler(func(c *lamb.APIGatewayProxyContext) error {
 		return lamb.Err{
 			Status: http.StatusBadRequest,
 			Code:   "INVALID_QUERY_PARAM",
@@ -177,7 +177,7 @@ func TestErrorResponse_CustomError(t *testing.T) {
 }
 
 func TestErrorResponse_SupportsParams(t *testing.T) {
-	h := handler(lamb.Handle(func(c *lamb.Context) error {
+	h := handler(lamb.NewAPIGatewayProxyHandler(func(c *lamb.APIGatewayProxyContext) error {
 		return lamb.Err{
 			Status: http.StatusBadRequest,
 			Code:   "INVALID_QUERY_PARAM",
@@ -211,7 +211,7 @@ func TestError_Error(t *testing.T) {
 
 func TestAPIGatewayProxyHandler_UnhandledErrorWithStackTrace(t *testing.T) {
 	logCaptor := &bytes.Buffer{}
-	h := handler(lamb.Handle(func(c *lamb.Context) error {
+	h := handler(lamb.NewAPIGatewayProxyHandler(func(c *lamb.APIGatewayProxyContext) error {
 		c.Logger = zerolog.New(logCaptor)
 		return eris.Wrap(errors.New("source err"), "add context")
 	}))

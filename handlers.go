@@ -1,6 +1,7 @@
 package lamb
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"strings"
@@ -57,6 +58,21 @@ func (err Err) Error() string {
 		fmt.Sprintf("Code: %s; Status: %d; Detail: %s", err.Code, err.Status, err.Detail),
 	}
 	return strings.Join(errorParts, "; ")
+}
+
+func bind(data []byte, v interface{}) error {
+	if err := json.Unmarshal(data, v); err != nil {
+		return ErrInvalidBody
+	}
+
+	if validatable, ok := v.(Validatable); ok {
+		err := validatable.Validate()
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func logUnhandledError(logger zerolog.Logger, err error) {

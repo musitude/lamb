@@ -51,18 +51,7 @@ func NewAPIGatewayProxyHandler(handlerFunc APIGatewayProxyHandlerFunc) APIGatewa
 // Bind attempts to populate the provided struct with data from the HTTP request body.
 // It also performs validation if the provided struct implements `Validatable`
 func (c *APIGatewayProxyContext) Bind(v interface{}) error {
-	if err := json.Unmarshal([]byte(c.Request.Body), v); err != nil {
-		return ErrInvalidBody
-	}
-
-	if validatable, ok := v.(Validatable); ok {
-		err := validatable.Validate()
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
+	return bind([]byte(c.Request.Body), v)
 }
 
 func (c *APIGatewayProxyContext) handleError(err error) {

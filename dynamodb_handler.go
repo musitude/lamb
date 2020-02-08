@@ -8,6 +8,7 @@ import (
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
+	"github.com/rotisserie/eris"
 	"github.com/rs/zerolog"
 )
 
@@ -63,11 +64,12 @@ func unmarshalStreamImage(attribute map[string]events.DynamoDBAttributeValue, ou
 			return marshalErr
 		}
 		if err := json.Unmarshal(bytes, &dbAttr); err != nil {
-			return err
+			return eris.Wrap(err, "failed to unmarshal dynamodb attributes")
 		}
 		dbAttrMap[k] = &dbAttr
 	}
-	return dynamodbattribute.UnmarshalMap(dbAttrMap, out)
+	err := dynamodbattribute.UnmarshalMap(dbAttrMap, out)
+	return eris.Wrap(err, "failed to unmarshal dynamodb attribute map")
 }
 
 func (c *DynamoDBContext) EventType() events.DynamoDBOperationType {

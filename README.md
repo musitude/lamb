@@ -4,8 +4,9 @@
 [![Coverage Status](https://coveralls.io/repos/github/musitude/lamb/badge.svg?branch=master)](https://coveralls.io/github/musitude/lamb?branch=master)
 [![Go Report Card](https://goreportcard.com/badge/github.com/musitude/lamb)](https://goreportcard.com/report/github.com/musitude/lamb)
 
-Provides the following utilities to simplify working with AWS lambda and Api Gateway.
+Provides the following utilities to simplify working with AWS lambda.
 
+* Handlers for API Gateway, S3 and DynamoDB
 * HTTP request parsing with JSON support and request body validation
 * HTTP response writer with JSON support
 * Custom error type with JSON support

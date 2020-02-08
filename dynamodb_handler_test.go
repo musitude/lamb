@@ -19,7 +19,7 @@ type record struct {
 func TestDynamoDBHandler(t *testing.T) {
 	h := lamb.NewDynamoDBHandler(func(c *lamb.DynamoDBContext) error {
 		var rec record
-		if err := c.Bind(&rec); err != nil {
+		if err := c.Bind(c.Event.Change.NewImage, &rec); err != nil {
 			return err
 		}
 
@@ -58,7 +58,7 @@ func TestDynamoDBHandler(t *testing.T) {
 func TestDynamoDBHandler_Remove(t *testing.T) {
 	h := lamb.NewDynamoDBHandler(func(c *lamb.DynamoDBContext) error {
 		var rec record
-		if err := c.Bind(&rec); err != nil {
+		if err := c.Bind(c.Event.Change.Keys, &rec); err != nil {
 			return err
 		}
 

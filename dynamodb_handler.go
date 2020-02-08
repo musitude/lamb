@@ -50,21 +50,19 @@ func NewDynamoDBHandler(handlerFunc DynamoDBStreamHandlerFunc) func(ctx context.
 
 // Bind attempts to populate the provided struct with data from the HTTP request body.
 // It also performs validation if the provided struct implements `Validatable`
-func (c *DynamoDBContext) Bind(v interface{}) error {
-	if c.EventType() == events.DynamoDBOperationTypeRemove {
-		return unmarshalStreamImage(c.Event.Change.Keys, v)
-	}
-	return unmarshalStreamImage(c.Event.Change.NewImage, v)
+func (c *DynamoDBContext) Bind(attributes map[string]events.DynamoDBAttributeValue, v interface{}) error {
+	return unmarshalStreamImage(attributes, v)
 }
 
 func unmarshalStreamImage(attribute map[string]events.DynamoDBAttributeValue, out interface{}) error {
 	dbAttrMap := make(map[string]*dynamodb.AttributeValue)
 	for k, v := range attribute {
 		var dbAttr dynamodb.AttributeValue
-		bytes, marshalErr := v.MarshalJSON(); if marshalErr != nil {
+		bytes, marshalErr := v.MarshalJSON()
+		if marshalErr != nil {
 			return marshalErr
 		}
-		if err := json.Unmarshal(bytes, &dbAttr);err != nil {
+		if err := json.Unmarshal(bytes, &dbAttr); err != nil {
 			return err
 		}
 		dbAttrMap[k] = &dbAttr

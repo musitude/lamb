@@ -11,11 +11,11 @@ import (
 	"github.com/rs/zerolog"
 )
 
-// DynamoDBHandler is the DynamoDB event handler func for AWS lambda
-type DynamoDBHandler func(ctx context.Context, r events.DynamoDBEvent) error
+// DynamoDBStreamHandler is the DynamoDB event handler func for AWS lambda
+type DynamoDBStreamHandler func(ctx context.Context, r events.DynamoDBEvent) error
 
-// DynamoDBHandlerFunc is the lamb handler that users of this library implement. It gives access to convenience methods via `ctx`
-type DynamoDBHandlerFunc func(ctx *DynamoDBContext) error
+// DynamoDBStreamHandlerFunc is the lamb handler that users of this library implement. It gives access to convenience methods via `ctx`
+type DynamoDBStreamHandlerFunc func(ctx *DynamoDBContext) error
 
 // APIGatewayProxyContext provides convenience methods for working with API Gateway requests and responses
 type DynamoDBContext struct {
@@ -25,7 +25,7 @@ type DynamoDBContext struct {
 }
 
 // NewDynamoDBHandler adapts the lamb APIGatewayProxyHandlerFunc to the AWS lambda handler that is passed to lambda.Start
-func NewDynamoDBHandler(handlerFunc DynamoDBHandlerFunc) func(ctx context.Context, r events.DynamoDBEvent) error {
+func NewDynamoDBHandler(handlerFunc DynamoDBStreamHandlerFunc) func(ctx context.Context, r events.DynamoDBEvent) error {
 	return func(ctx context.Context, e events.DynamoDBEvent) error {
 		for _, record := range e.Records {
 			logger := zerolog.New(os.Stdout).With().
